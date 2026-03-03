@@ -1,14 +1,25 @@
 import { HomeIcon, SnowflakeIcon } from '../data/icons';
+import RegionSelector from './RegionSelector';
 
 export default function ClimateSettings({
   tempInside, tempOutside, humidityInside, humidityOutside,
   onTempInsideChange, onTempOutsideChange,
   onHumidityInsideChange, onHumidityOutsideChange,
+  regions, selectedRegion, onRegionChange,
 }) {
   return (
     <div className="section animate-in">
       <div className="card">
         <div className="card-content" style={{ paddingTop: '1.25rem' }}>
+          {/* Region Selector */}
+          <div style={{ marginBottom: '1rem' }}>
+            <RegionSelector
+              regions={regions}
+              selectedRegion={selectedRegion}
+              onRegionChange={onRegionChange}
+            />
+          </div>
+
           <div className="climate-row">
             <div className="climate-block">
               <div className="climate-block-title">
@@ -35,12 +46,17 @@ export default function ClimateSettings({
             <div className="climate-block">
               <div className="climate-block-title">
                 <SnowflakeIcon /> Снаружи
+                {selectedRegion && (
+                  <span style={{ fontSize: '0.6875rem', color: 'var(--muted-foreground)', marginLeft: '0.375rem' }}>
+                    · {selectedRegion.name}
+                  </span>
+                )}
               </div>
               <div className="temp-display" style={{ color: 'var(--brand)' }}>
                 {tempOutside > 0 ? '+' : ''}{tempOutside}<span className="unit">°C</span>
               </div>
               <input
-                type="range" className="slider" min={-45} max={10}
+                type="range" className="slider" min={-55} max={10}
                 value={tempOutside}
                 onInput={e => onTempOutsideChange(+e.target.value)}
               />

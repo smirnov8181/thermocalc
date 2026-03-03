@@ -1,5 +1,6 @@
-import { ThermometerIcon, DropletsIcon, ZapIcon, CheckIcon, XIcon, ChartIcon } from '../data/icons';
+import { ThermometerIcon, DropletsIcon, ZapIcon, CheckIcon, XIcon, ChartIcon, LightbulbIcon } from '../data/icons';
 import TempGraph from './TempGraph';
+import OptimizePanel from './OptimizePanel';
 
 export default function ResultsPanel({
   activeTab, onTabChange,
@@ -8,6 +9,8 @@ export default function ResultsPanel({
   qPerHour, qSeason, totalThickness,
   tempInside, tempOutside,
   isDark, layers,
+  selectedRegion, regionT5, regionZht, regionTht,
+  recommendations, optimizeLoading, optimizeError, onOptimize,
 }) {
   return (
     <div className="animate-in stagger-2">
@@ -15,14 +18,27 @@ export default function ResultsPanel({
         <div className="card-header">
           <div>
             <div className="card-title"><ChartIcon /> Результаты расчёта</div>
-            <div className="card-description">СНиП 23-02-2003 · Москва</div>
+            <div className="card-description">СНиП 23-02-2003 · {selectedRegion?.name || 'Москва'}</div>
           </div>
-          {meetsNorm && meetsSanitary
-            ? <span className="badge badge-success"><CheckIcon /> Норма</span>
-            : <span className="badge badge-destructive"><XIcon /> Не соответствует</span>
-          }
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            {meetsNorm && meetsSanitary
+              ? <span className="badge badge-success"><CheckIcon /> Норма</span>
+              : <span className="badge badge-destructive"><XIcon /> Не соответствует</span>
+            }
+            <button className="optimize-btn" onClick={onOptimize} disabled={optimizeLoading}>
+              <LightbulbIcon /> <span>AI</span>
+            </button>
+          </div>
         </div>
         <div className="card-content">
+          {/* AI Recommendations */}
+          <OptimizePanel
+            recommendations={recommendations}
+            loading={optimizeLoading}
+            error={optimizeError}
+            onRetry={onOptimize}
+          />
+
           {/* Tabs */}
           <div className="tabs" style={{ marginBottom: '1rem' }}>
             <button className={`tab ${activeTab === 'thermal' ? 'active' : ''}`} onClick={() => onTabChange('thermal')}>
@@ -54,6 +70,7 @@ export default function ResultsPanel({
               qPerHour={qPerHour} qSeason={qSeason}
               totalThickness={totalThickness}
               tempInside={tempInside} Rtotal={Rtotal}
+              regionT5={regionT5} regionZht={regionZht}
             />
           )}
         </div>
@@ -170,8 +187,8 @@ function MoistureTab({ dewP, innerSurfaceTemp, condensationRisk }) {
   );
 }
 
-function LossesTab({ qPerHour, qSeason, totalThickness, tempInside, Rtotal }) {
-  const qCold = Rtotal > 0 ? ((tempInside - (-23)) / Rtotal).toFixed(1) : '∞';
+function LossesTab({ qPerHour, qSeason, totalThickness, tempInside, Rtotal, regionT5, regionZht }) {
+  const qCold = Rtotal > 0 ? ((tempInside - regionT5) / Rtotal).toFixed(1) : '∞';
 
   return (
     <>
@@ -194,9 +211,9 @@ function LossesTab({ qPerHour, qSeason, totalThickness, tempInside, Rtotal }) {
       </div>
       <div className="card" style={{ background: 'var(--secondary)', border: '1px solid var(--border)', padding: '1rem', borderRadius: 'var(--radius-lg)' }}>
         <div style={{ fontSize: '0.8125rem', lineHeight: 1.6, color: 'var(--muted-foreground)' }}>
-          При текущих параметрах конструкции и температуре самой холодной пятидневки (<strong className="mono">-23°C</strong>),
+          При текущих параметрах конструкции и температуре самой холодной пятидневки (<strong className="mono">{regionT5}°C</strong>),
           теплопотери через 1 м² составляют <strong className="mono">{qCold} Вт</strong>.
-          За отопительный сезон (202 сут.) потери составят <strong className="mono">{qSeason.toFixed(1)} кВт·ч/м²</strong>.
+          За отопительный сезон ({regionZht} сут.) потери составят <strong className="mono">{qSeason.toFixed(1)} кВт·ч/м²</strong>.
         </div>
       </div>
     </>

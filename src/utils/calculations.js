@@ -153,4 +153,47 @@ export function drawTempGraph(canvas, temps, dewP, isDark, layers) {
     ctx.arc(x, y, 1.5, 0, Math.PI * 2);
     ctx.fill();
   });
+
+  // Dew point intersection dots
+  for (let i = 0; i < temps.length - 1; i++) {
+    const t1 = temps[i].t;
+    const t2 = temps[i + 1].t;
+    if ((t1 >= dewP && t2 <= dewP) || (t1 <= dewP && t2 >= dewP)) {
+      if (Math.abs(t2 - t1) < 0.001) continue;
+      const frac = (dewP - t1) / (t2 - t1);
+      const xInt = temps[i].x + frac * (temps[i + 1].x - temps[i].x);
+      const cx = toX(xInt);
+      const cy = toY(dewP);
+
+      // Bold dot
+      ctx.fillStyle = isDark ? 'rgba(100,180,255,0.9)' : 'rgba(0,100,200,0.85)';
+      ctx.beginPath();
+      ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+      ctx.fill();
+      // Inner highlight
+      ctx.fillStyle = isDark ? '#333' : '#fff';
+      ctx.beginPath();
+      ctx.arc(cx, cy, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Label with background
+      const label = 'Точка росы';
+      ctx.font = '10px Inter';
+      const tw = ctx.measureText(label).width;
+      let lx = cx + 10;
+      let ly = cy - 12;
+      if (lx + tw + 8 > W - pad.right) lx = cx - tw - 18;
+      if (ly - 14 < pad.top) ly = cy + 20;
+
+      ctx.fillStyle = isDark ? 'rgba(30,30,30,0.85)' : 'rgba(255,255,255,0.9)';
+      ctx.fillRect(lx - 4, ly - 12, tw + 8, 16);
+      ctx.strokeStyle = isDark ? 'rgba(100,180,255,0.4)' : 'rgba(0,100,200,0.3)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(lx - 4, ly - 12, tw + 8, 16);
+
+      ctx.fillStyle = isDark ? 'rgba(100,180,255,0.9)' : 'rgba(0,100,200,0.85)';
+      ctx.textAlign = 'left';
+      ctx.fillText(label, lx, ly);
+    }
+  }
 }
