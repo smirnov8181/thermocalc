@@ -1,0 +1,1803 @@
+<!DOCTYPE html>
+<html lang="ru" class="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ThermoCalc — Теплотехнический калькулятор</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===== DESIGN SYSTEM TOKENS (from MASTER.md — oklch monochrome) ===== */
+:root {
+  --background: oklch(0.985 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+
+  /* Extended palette */
+  --brand: oklch(0.6 0.18 230);
+  --brand-light: oklch(0.92 0.04 230);
+  --brand-foreground: oklch(0.985 0 0);
+  --success: oklch(0.65 0.18 145);
+  --success-light: oklch(0.92 0.05 145);
+  --success-foreground: oklch(0.985 0 0);
+  --warning: oklch(0.75 0.15 75);
+  --warning-light: oklch(0.94 0.04 75);
+  --warning-foreground: oklch(0.3 0 0);
+  --info: oklch(0.65 0.15 250);
+  --info-light: oklch(0.94 0.03 250);
+
+  /* Radii from MASTER.md */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 1.5rem;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.04);
+  --shadow-md: 0 2px 8px oklch(0 0 0 / 0.06), 0 1px 2px oklch(0 0 0 / 0.04);
+  --shadow-lg: 0 4px 16px oklch(0 0 0 / 0.08), 0 2px 4px oklch(0 0 0 / 0.04);
+  --shadow-xl: 0 8px 32px oklch(0 0 0 / 0.1), 0 4px 8px oklch(0 0 0 / 0.04);
+
+  font-size: 15px;
+}
+
+.dark {
+  --background: oklch(0.13 0 0);
+  --foreground: oklch(0.93 0 0);
+  --card: oklch(0.17 0 0);
+  --card-foreground: oklch(0.93 0 0);
+  --primary: oklch(0.93 0 0);
+  --primary-foreground: oklch(0.13 0 0);
+  --secondary: oklch(0.22 0 0);
+  --secondary-foreground: oklch(0.85 0 0);
+  --muted: oklch(0.22 0 0);
+  --muted-foreground: oklch(0.6 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 10%);
+  --ring: oklch(0.5 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --brand: oklch(0.7 0.16 230);
+  --brand-light: oklch(0.25 0.05 230);
+  --success: oklch(0.72 0.16 145);
+  --success-light: oklch(0.25 0.05 145);
+  --warning: oklch(0.8 0.13 75);
+  --warning-light: oklch(0.28 0.04 75);
+  --info: oklch(0.72 0.13 250);
+  --info-light: oklch(0.25 0.03 250);
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.2);
+  --shadow-md: 0 2px 8px oklch(0 0 0 / 0.3);
+  --shadow-lg: 0 4px 16px oklch(0 0 0 / 0.35);
+  --shadow-xl: 0 8px 32px oklch(0 0 0 / 0.4);
+}
+
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--background);
+  color: var(--foreground);
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+/* ===== APP LAYOUT ===== */
+.app {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* ===== HEADER ===== */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 2rem;
+  position: sticky;
+  top: 0;
+  background: var(--background);
+  z-index: 30;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  text-decoration: none;
+  color: var(--foreground);
+}
+
+.logo-icon {
+  width: 2rem;
+  height: 2rem;
+  background: var(--primary);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-foreground);
+}
+
+.logo-text {
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.logo-badge {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  background: var(--secondary);
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ===== BUTTONS ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1;
+  padding: 0.5625rem 1rem;
+  border-radius: var(--radius-xl);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 150ms ease;
+  white-space: nowrap;
+  text-decoration: none;
+  outline: none;
+}
+.btn:focus-visible {
+  box-shadow: 0 0 0 3px var(--ring);
+}
+.btn-primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+.btn-primary:hover { opacity: 0.88; }
+.btn-secondary {
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+  border-color: var(--border);
+}
+.btn-secondary:hover { background: var(--muted); }
+.btn-outline {
+  background: transparent;
+  color: var(--foreground);
+  border-color: var(--border);
+}
+.btn-outline:hover { background: var(--secondary); }
+.btn-ghost {
+  background: transparent;
+  color: var(--foreground);
+}
+.btn-ghost:hover { background: var(--secondary); }
+.btn-destructive {
+  background: var(--destructive);
+  color: var(--destructive-foreground);
+}
+.btn-destructive:hover { opacity: 0.88; }
+.btn-brand {
+  background: var(--brand);
+  color: var(--brand-foreground);
+}
+.btn-brand:hover { opacity: 0.88; }
+
+.btn-sm { font-size: 0.8125rem; padding: 0.375rem 0.75rem; }
+.btn-lg { font-size: 0.9375rem; padding: 0.6875rem 1.25rem; }
+.btn-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border-radius: var(--radius-lg);
+}
+.btn-icon-sm {
+  width: 1.875rem;
+  height: 1.875rem;
+  padding: 0;
+  border-radius: var(--radius-md);
+}
+
+.btn svg { width: 1rem; height: 1rem; flex-shrink: 0; }
+.btn-icon svg, .btn-icon-sm svg { width: 1rem; height: 1rem; }
+
+/* ===== CARD ===== */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 1.25rem 1.5rem 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  line-height: 1.4;
+}
+
+.card-description {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+  margin-top: 0.125rem;
+  line-height: 1.5;
+}
+
+.card-content { padding: 1.25rem 1.5rem; }
+.card-footer {
+  padding: 0 1.5rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* ===== BADGE ===== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 9999px;
+  letter-spacing: 0.01em;
+  line-height: 1.4;
+}
+.badge-default { background: var(--primary); color: var(--primary-foreground); }
+.badge-secondary { background: var(--secondary); color: var(--secondary-foreground); border: 1px solid var(--border); }
+.badge-success { background: var(--success-light); color: var(--success); }
+.badge-warning { background: var(--warning-light); color: var(--warning-foreground); }
+.badge-destructive { background: oklch(0.577 0.245 27.325 / 0.1); color: var(--destructive); }
+.badge-brand { background: var(--brand-light); color: var(--brand); }
+.badge-info { background: var(--info-light); color: var(--info); }
+
+/* ===== INPUT / SELECT ===== */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.input-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.input-hint {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.input, .select {
+  font-family: inherit;
+  font-size: 0.875rem;
+  height: 2.25rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--input);
+  border-radius: var(--radius-md);
+  background: var(--card);
+  color: var(--foreground);
+  outline: none;
+  transition: all 150ms ease;
+  width: 100%;
+}
+.input:focus, .select:focus {
+  border-color: var(--ring);
+  box-shadow: 0 0 0 3px oklch(0.708 0 0 / 0.15);
+}
+.input::placeholder { color: var(--muted-foreground); }
+.input-mono {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8125rem;
+}
+
+/* Number input with unit */
+.input-unit-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.input-unit-wrap .input { padding-right: 2.5rem; }
+.input-unit {
+  position: absolute;
+  right: 0.75rem;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  pointer-events: none;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ===== TABS ===== */
+.tabs {
+  display: flex;
+  gap: 0.125rem;
+  background: var(--secondary);
+  border-radius: var(--radius-lg);
+  padding: 0.25rem;
+  border: 1px solid var(--border);
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 150ms ease;
+  white-space: nowrap;
+}
+.tab:hover { color: var(--foreground); }
+.tab.active {
+  background: var(--card);
+  color: var(--foreground);
+  box-shadow: var(--shadow-sm);
+}
+.tab svg { width: 0.875rem; height: 0.875rem; }
+
+/* ===== MAIN GRID LAYOUT ===== */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 860px) {
+  .main-grid { grid-template-columns: 1fr; }
+}
+
+/* ===== CONSTRUCTION LAYERS ===== */
+.layers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.layer-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  background: var(--secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  transition: all 150ms ease;
+  cursor: grab;
+  position: relative;
+}
+.layer-item:hover {
+  border-color: var(--ring);
+  box-shadow: var(--shadow-sm);
+}
+.layer-item.dragging {
+  opacity: 0.5;
+  box-shadow: var(--shadow-lg);
+}
+
+.layer-grip {
+  color: var(--muted-foreground);
+  cursor: grab;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.layer-grip span {
+  display: block;
+  width: 12px;
+  height: 2px;
+  background: var(--muted-foreground);
+  border-radius: 1px;
+  opacity: 0.5;
+}
+
+.layer-color {
+  width: 0.75rem;
+  height: 2.5rem;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.layer-info { min-width: 0; }
+.layer-name {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.layer-material {
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+}
+
+.layer-thickness {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.layer-r {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+  text-align: right;
+  white-space: nowrap;
+  min-width: 4rem;
+}
+
+.layer-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+/* ===== WALL CROSS-SECTION VISUALIZATION ===== */
+.wall-viz {
+  display: flex;
+  align-items: stretch;
+  height: 240px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  position: relative;
+}
+
+.wall-side-label {
+  position: absolute;
+  top: 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  z-index: 2;
+  background: oklch(1 0 0 / 0.7);
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm);
+}
+.dark .wall-side-label { background: oklch(0.17 0 0 / 0.7); }
+.wall-side-label.inside { left: 0.5rem; }
+.wall-side-label.outside { right: 0.5rem; }
+
+.wall-layer-viz {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-width: 30px;
+  position: relative;
+  transition: all 300ms ease;
+  cursor: pointer;
+  border-right: 1px solid oklch(0 0 0 / 0.08);
+}
+.wall-layer-viz:last-child { border-right: none; }
+.wall-layer-viz:hover { opacity: 0.85; }
+
+.wall-layer-viz-label {
+  font-size: 0.5625rem;
+  font-weight: 600;
+  color: oklch(0.3 0 0);
+  text-align: center;
+  padding: 0.25rem;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+.wall-layer-viz-thickness {
+  position: absolute;
+  bottom: 0.375rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.5625rem;
+  font-weight: 600;
+  color: oklch(0.3 0 0 / 0.7);
+  writing-mode: horizontal-tb;
+}
+
+/* ===== TEMPERATURE GRAPH ===== */
+.temp-graph-container {
+  position: relative;
+  height: 280px;
+  width: 100%;
+}
+
+.temp-graph-canvas {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--card);
+}
+
+/* ===== RESULTS PANEL ===== */
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+@media (max-width: 600px) {
+  .results-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.result-card {
+  padding: 1rem;
+  border-radius: var(--radius-lg);
+  background: var(--secondary);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.result-label {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.result-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.result-unit {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  font-weight: 400;
+}
+
+.result-status {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  margin-top: 0.25rem;
+}
+
+/* ===== MATERIAL DIALOG ===== */
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: oklch(0 0 0 / 0.4);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 200ms ease;
+}
+.dialog-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.dialog {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-xl);
+  width: 100%;
+  max-width: 480px;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transform: scale(0.96) translateY(8px);
+  transition: transform 200ms ease;
+}
+.dialog-overlay.open .dialog {
+  transform: scale(1) translateY(0);
+}
+
+.dialog-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.dialog-title {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+
+.dialog-body {
+  padding: 1rem 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.dialog-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+/* Material list */
+.material-category {
+  margin-bottom: 0.75rem;
+}
+.material-category-title {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted-foreground);
+  padding: 0.375rem 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.375rem;
+}
+
+.material-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.625rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 100ms ease;
+  border: 1px solid transparent;
+}
+.material-option:hover { background: var(--secondary); }
+.material-option.selected {
+  background: var(--brand-light);
+  border-color: var(--brand);
+}
+
+.material-option-name {
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+.material-option-lambda {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+/* ===== CLIMATE SELECTOR ===== */
+.climate-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.climate-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.climate-block-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted-foreground);
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.temp-display {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 0.125rem;
+}
+.temp-display .unit {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--muted-foreground);
+}
+
+/* ===== SLIDER ===== */
+.slider-wrap { position: relative; }
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  outline: none;
+}
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--primary);
+  cursor: pointer;
+  border: 3px solid var(--card);
+  box-shadow: var(--shadow-md);
+  transition: transform 100ms ease;
+}
+.slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+/* ===== THEME TOGGLE ===== */
+.theme-toggle {
+  position: relative;
+  width: 2.75rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  background: var(--secondary);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+.theme-toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 50%;
+  background: var(--primary);
+  transition: transform 200ms ease;
+}
+.dark .theme-toggle::after {
+  transform: translateX(1.25rem);
+}
+
+/* ===== SECTION SPACING ===== */
+.section { margin-bottom: 1.5rem; }
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.section-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ===== NORMA BAR ===== */
+.norma-bar-wrap {
+  position: relative;
+  height: 2.25rem;
+  margin: 1rem 0;
+}
+
+.norma-bar-bg {
+  position: absolute;
+  left: 0; right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.norma-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 500ms cubic-bezier(0.25, 0.4, 0.25, 1);
+}
+
+.norma-marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--foreground);
+  border-radius: 1px;
+}
+
+.norma-marker-label {
+  position: absolute;
+  bottom: -0.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.5625rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: var(--muted-foreground);
+}
+.empty-state svg {
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-bottom: 0.75rem;
+  opacity: 0.4;
+}
+.empty-state-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+.empty-state-hint {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-in {
+  animation: fadeInUp 400ms cubic-bezier(0.25, 0.4, 0.25, 1) both;
+}
+
+.stagger-1 { animation-delay: 50ms; }
+.stagger-2 { animation-delay: 100ms; }
+.stagger-3 { animation-delay: 150ms; }
+.stagger-4 { animation-delay: 200ms; }
+
+/* ===== FOOTER ===== */
+.footer {
+  padding: 1.5rem 0;
+  border-top: 1px solid var(--border);
+  margin-top: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+/* ===== TOOLTIP ===== */
+[data-tooltip] { position: relative; }
+[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  padding: 0.25rem 0.5rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-radius: var(--radius-sm);
+  pointer-events: none;
+  z-index: 10;
+  animation: fadeInUp 150ms ease both;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--muted-foreground); }
+
+/* ===== TABLET (≤860px) ===== */
+@media (max-width: 860px) {
+  .results-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ===== MOBILE (≤600px) ===== */
+@media (max-width: 600px) {
+  :root { font-size: 14px; }
+
+  .app { padding: 0 1rem; }
+
+  .header {
+    padding: 0.625rem 0;
+    margin-bottom: 1rem;
+  }
+  .logo-badge { display: none; }
+  .logo-text { font-size: 1rem; }
+
+  /* Climate */
+  .climate-row { grid-template-columns: 1fr; gap: 1.25rem; }
+  .temp-display { font-size: 1.5rem; }
+
+  /* Results grid */
+  .results-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  .result-card { padding: 0.75rem; }
+  .result-value { font-size: 1.25rem; }
+  .result-label { font-size: 0.625rem; }
+
+  /* Tabs — horizontal scroll on mobile */
+  .tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex: 0 0 auto;
+    padding: 0.5rem 0.625rem;
+    font-size: 0.75rem;
+    min-height: 2.5rem; /* touch target */
+  }
+  .tab svg { width: 0.75rem; height: 0.75rem; }
+
+  /* Layer items — stack on mobile */
+  .layer-item {
+    grid-template-columns: auto 1fr auto;
+    grid-template-rows: auto auto;
+    gap: 0.375rem 0.625rem;
+    padding: 0.75rem;
+  }
+  .layer-grip { grid-row: 1 / 3; }
+  .layer-color { display: none; }
+  .layer-info {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .layer-info .layer-name { font-size: 0.8125rem; }
+  .layer-thickness-wrap {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .layer-r { display: none; }
+  .layer-actions {
+    grid-column: 3;
+    grid-row: 1 / 3;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Touch-friendly buttons */
+  .btn-icon, .btn-icon-sm {
+    width: 2.75rem;
+    height: 2.75rem;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+  .btn-sm {
+    min-height: 2.75rem;
+    padding: 0.5rem 0.875rem;
+  }
+  .btn { min-height: 2.75rem; }
+
+  /* Wall visualization */
+  .wall-viz { height: 160px; }
+  .wall-side-label { font-size: 0.5625rem; }
+  .wall-layer-viz-label { font-size: 0.5rem; }
+  .wall-layer-viz-thickness { font-size: 0.5rem; }
+
+  /* Card spacing */
+  .card-header { padding: 1rem 1rem 0; }
+  .card-content { padding: 1rem; }
+  .card-footer { padding: 0 1rem 1rem; }
+  .card-title { font-size: 0.9375rem; }
+  .card-description { font-size: 0.75rem; }
+
+  /* Canvas graph */
+  .temp-graph-canvas { height: 200px; }
+
+  /* Dialog — fullscreen on mobile */
+  .dialog {
+    max-width: 100%;
+    max-height: 100%;
+    height: 100%;
+    border-radius: 0;
+  }
+  .dialog-overlay { padding: 0; }
+  .dialog-body { padding: 0.75rem 1rem; }
+  .dialog-header { padding: 1rem; }
+  .dialog-footer { padding: 0.75rem 1rem; }
+  .material-option {
+    padding: 0.75rem 0.625rem;
+    min-height: 2.75rem;
+  }
+
+  /* Bigger slider thumbs for touch */
+  .slider { height: 6px; }
+  .slider::-webkit-slider-thumb {
+    width: 24px;
+    height: 24px;
+    border-width: 3px;
+  }
+
+  /* Footer */
+  .footer {
+    flex-direction: column;
+    gap: 0.25rem;
+    text-align: center;
+    padding: 1rem 0;
+  }
+
+  /* Section */
+  .section { margin-bottom: 1rem; }
+  .section-header { margin-bottom: 0.75rem; }
+
+  /* Norma bar labels */
+  .norma-marker-label { font-size: 0.5rem; }
+}
+
+/* ===== VERY SMALL MOBILE (≤374px) ===== */
+@media (max-width: 374px) {
+  .results-grid { grid-template-columns: 1fr; }
+  .result-card {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .result-value { font-size: 1.125rem; }
+  .temp-display { font-size: 1.25rem; }
+  .layer-item { padding: 0.625rem; }
+}
+
+/* ===== SAFE AREA (notch phones) ===== */
+@supports(padding: max(0px)) {
+  .app {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+  .header {
+    padding-top: max(0.625rem, env(safe-area-inset-top));
+  }
+  .footer {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* ===== TOUCH DEVICE HOVER FIX ===== */
+@media (hover: none) {
+  .layer-item:hover {
+    border-color: var(--border);
+    box-shadow: none;
+  }
+  .wall-layer-viz:hover { opacity: 1; }
+  [data-tooltip]:hover::after { display: none; }
+  .btn-primary:hover { opacity: 1; }
+  .btn-secondary:hover { background: var(--secondary); }
+  .btn-outline:hover { background: transparent; }
+  .btn-ghost:hover { background: transparent; }
+
+  /* Active states for touch */
+  .btn:active { transform: scale(0.97); }
+  .layer-item:active {
+    border-color: var(--ring);
+    background: var(--muted);
+  }
+  .material-option:active { background: var(--secondary); }
+  .tab:active { background: var(--muted); }
+}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+// ===== MATERIAL DATABASE =====
+const MATERIALS = {
+  "Утеплители": [
+    { name: "Минеральная вата", lambda: 0.045, mu: 0.3, color: "#FFE082", density: 100 },
+    { name: "Пенополистирол ПСБ-25", lambda: 0.039, mu: 0.05, color: "#E0F7FA", density: 25 },
+    { name: "ЭППС (экструзионный)", lambda: 0.032, mu: 0.005, color: "#B2EBF2", density: 35 },
+    { name: "Пенополиуретан", lambda: 0.028, mu: 0.05, color: "#FFF9C4", density: 40 },
+    { name: "Эковата", lambda: 0.04, mu: 0.3, color: "#DCEDC8", density: 65 },
+    { name: "Базальтовая плита", lambda: 0.036, mu: 0.3, color: "#F0E68C", density: 80 },
+  ],
+  "Каменная кладка": [
+    { name: "Кирпич керамический полнотелый", lambda: 0.56, mu: 0.11, color: "#D4786B", density: 1800 },
+    { name: "Кирпич керамический пустотелый", lambda: 0.44, mu: 0.14, color: "#E8A090", density: 1400 },
+    { name: "Кирпич силикатный", lambda: 0.76, mu: 0.11, color: "#E0D8CC", density: 1800 },
+    { name: "Газобетон D400", lambda: 0.11, mu: 0.23, color: "#F5F0E8", density: 400 },
+    { name: "Газобетон D500", lambda: 0.14, mu: 0.2, color: "#EDE8DE", density: 500 },
+    { name: "Газобетон D600", lambda: 0.18, mu: 0.17, color: "#E5DFD4", density: 600 },
+    { name: "Керамзитобетон D800", lambda: 0.31, mu: 0.14, color: "#C8B8A0", density: 800 },
+    { name: "Пеноблок D600", lambda: 0.16, mu: 0.2, color: "#F0EBE0", density: 600 },
+  ],
+  "Отделка": [
+    { name: "Штукатурка цементная", lambda: 0.76, mu: 0.09, color: "#BDBDBD", density: 1800 },
+    { name: "Штукатурка гипсовая", lambda: 0.35, mu: 0.11, color: "#F5F0E8", density: 1200 },
+    { name: "Гипсокартон ГКЛ", lambda: 0.21, mu: 0.075, color: "#F5F5F5", density: 850 },
+    { name: "Фанера", lambda: 0.15, mu: 0.02, color: "#D7C9A8", density: 600 },
+    { name: "Вагонка сосна", lambda: 0.15, mu: 0.06, color: "#DEC89C", density: 500 },
+    { name: "Сайдинг ПВХ", lambda: 0.16, mu: 0.02, color: "#E8E8E8", density: 1300 },
+  ],
+  "Прочее": [
+    { name: "Бетон", lambda: 1.51, mu: 0.03, color: "#9E9E9E", density: 2400 },
+    { name: "Дерево (сосна поперёк)", lambda: 0.18, mu: 0.06, color: "#C9A86C", density: 500 },
+    { name: "Пароизоляция", lambda: 0.17, mu: 0.0002, color: "#CFD8DC", density: 100 },
+    { name: "Ветрозащита", lambda: 0.17, mu: 0.4, color: "#B0BEC5", density: 100 },
+  ]
+};
+
+// ===== SVG ICONS =====
+const ICONS = {
+  layers: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>`,
+  plus: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>`,
+  trash: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>`,
+  thermometer: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/></svg>`,
+  snowflake: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" x2="22" y1="12" y2="12"/><line x1="12" x2="12" y1="2" y2="22"/><path d="m20 16-4-4 4-4"/><path d="m4 8 4 4-4 4"/><path d="m16 4-4 4-4-4"/><path d="m8 20 4-4 4 4"/></svg>`,
+  sun: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`,
+  moon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`,
+  home: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+  droplets: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.84-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"/><path d="M12.56 14.69c1.34 0 2.44-1.12 2.44-2.47 0-.71-.35-1.38-1.05-1.95S12.78 9 12.56 8.1c-.17.88-.7 1.73-1.4 2.3s-1.05 1.2-1.05 1.82c0 1.36 1.1 2.47 2.45 2.47z"/></svg>`,
+  zap: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>`,
+  check: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`,
+  x: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`,
+  arrowUp: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>`,
+  arrowDown: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>`,
+  info: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>`,
+  share: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></svg>`,
+  download: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>`,
+  chart: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/></svg>`,
+  shield: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>`,
+};
+
+// ===== APP STATE =====
+let state = {
+  layers: [
+    { id: 1, material: MATERIALS["Отделка"][2], thickness: 12.5 },
+    { id: 2, material: MATERIALS["Каменная кладка"][3], thickness: 375 },
+    { id: 3, material: MATERIALS["Утеплители"][0], thickness: 100 },
+    { id: 4, material: MATERIALS["Отделка"][0], thickness: 20 },
+  ],
+  tempInside: 20,
+  tempOutside: -10,
+  humidityInside: 55,
+  humidityOutside: 85,
+  activeTab: "thermal",
+  isDark: false,
+  dialogOpen: false,
+  nextId: 5,
+};
+
+// ===== CALCULATIONS =====
+function calcR(layers) {
+  const Rint = 1 / 8.7;
+  const Rext = 1 / 23;
+  let Rwall = 0;
+  layers.forEach(l => {
+    Rwall += (l.thickness / 1000) / l.material.lambda;
+  });
+  return { Rint, Rext, Rwall, Rtotal: Rint + Rwall + Rext };
+}
+
+function calcTemperatures(layers, tIn, tOut) {
+  const { Rint, Rext, Rwall, Rtotal } = calcR(layers);
+  if (Rtotal === 0) return [];
+  const q = (tIn - tOut) / Rtotal;
+  const points = [];
+  let cumR = 0;
+  let cumThick = 0;
+
+  points.push({ x: 0, t: tIn, label: "Внутри" });
+  cumR += Rint;
+  points.push({ x: 0, t: tIn - q * cumR, label: "Пов-сть (в)" });
+
+  layers.forEach((l, i) => {
+    const Rl = (l.thickness / 1000) / l.material.lambda;
+    cumR += Rl;
+    cumThick += l.thickness;
+    points.push({
+      x: cumThick,
+      t: tIn - q * cumR,
+      label: l.material.name
+    });
+  });
+
+  cumR += Rext;
+  points.push({ x: cumThick, t: tOut, label: "Пов-сть (н)" });
+  points.push({ x: cumThick + 5, t: tOut, label: "Снаружи" });
+
+  return points;
+}
+
+function dewPoint(t, rh) {
+  const a = 17.27, b = 237.7;
+  const alpha = (a * t) / (b + t) + Math.log(rh / 100);
+  return (b * alpha) / (a - alpha);
+}
+
+function getRequired(gsop) {
+  // Approximated from SNiP table for walls
+  return 0.00035 * gsop + 1.4;
+}
+
+function getSanitary(tIn, tOut, n, deltaT, alphaInt) {
+  return n * (tIn - tOut) / (deltaT * alphaInt);
+}
+
+// ===== RENDERING =====
+function render() {
+  const { layers, tempInside, tempOutside, humidityInside, humidityOutside, activeTab, isDark } = state;
+  const { Rtotal, Rint, Rext } = calcR(layers);
+  const totalThickness = layers.reduce((s, l) => s + l.thickness, 0);
+  const gsop = (tempInside - (-1.7)) * 202;
+  const Rrequired = getRequired(gsop);
+  const Rsanitary = getSanitary(tempInside, -23, 1, 4, 8.7);
+  const dewP = dewPoint(tempInside, humidityInside);
+  const temps = calcTemperatures(layers, tempInside, tempOutside);
+  const innerSurfaceTemp = temps.length > 1 ? temps[1].t : tempInside;
+  const outerSurfaceTemp = temps.length > 2 ? temps[temps.length - 3].t : tempOutside;
+  const meetsNorm = Rtotal >= Rrequired;
+  const meetsSanitary = Rtotal >= Rsanitary;
+  const condensationRisk = innerSurfaceTemp <= dewP;
+
+  // Heat loss
+  const qPerHour = Rtotal > 0 ? (tempInside - tempOutside) / Rtotal : 0;
+  const qSeason = Rtotal > 0 ? (tempInside - (-1.7)) / Rtotal * 202 * 24 / 1000 : 0;
+
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <!-- HEADER -->
+    <header class="header">
+      <a href="#" class="logo">
+        <div class="logo-icon">${ICONS.shield}</div>
+        <span class="logo-text">ThermoCalc</span>
+        <span class="logo-badge">MVP</span>
+      </a>
+      <div class="header-actions">
+        <button class="btn btn-ghost btn-icon" data-tooltip="Поделиться" onclick="shareCalc()">${ICONS.share}</button>
+        <div class="theme-toggle" onclick="toggleTheme()" data-tooltip="${isDark ? 'Светлая тема' : 'Тёмная тема'}"></div>
+      </div>
+    </header>
+
+    <!-- CLIMATE SETTINGS -->
+    <div class="section animate-in">
+      <div class="card">
+        <div class="card-content" style="padding-top:1.25rem">
+          <div class="climate-row">
+            <div class="climate-block">
+              <div class="climate-block-title">
+                ${ICONS.home} Внутри помещения
+              </div>
+              <div class="temp-display" style="color:var(--destructive)">
+                ${tempInside > 0 ? '+' : ''}${tempInside}<span class="unit">°C</span>
+              </div>
+              <input type="range" class="slider" min="10" max="30" value="${tempInside}" oninput="updateState('tempInside', +this.value)">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.25rem">
+                <span class="input-hint">Влажность</span>
+                <span class="mono" style="font-size:0.8125rem;font-weight:500">${humidityInside}%</span>
+              </div>
+              <input type="range" class="slider" min="30" max="80" value="${humidityInside}" oninput="updateState('humidityInside', +this.value)">
+            </div>
+            <div class="climate-block">
+              <div class="climate-block-title">
+                ${ICONS.snowflake} Снаружи
+              </div>
+              <div class="temp-display" style="color:var(--brand)">
+                ${tempOutside > 0 ? '+' : ''}${tempOutside}<span class="unit">°C</span>
+              </div>
+              <input type="range" class="slider" min="-45" max="10" value="${tempOutside}" oninput="updateState('tempOutside', +this.value)">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.25rem">
+                <span class="input-hint">Влажность</span>
+                <span class="mono" style="font-size:0.8125rem;font-weight:500">${humidityOutside}%</span>
+              </div>
+              <input type="range" class="slider" min="40" max="100" value="${humidityOutside}" oninput="updateState('humidityOutside', +this.value)">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="main-grid">
+      <!-- LEFT: LAYERS -->
+      <div class="animate-in stagger-1">
+        <div class="card" style="height:100%">
+          <div class="card-header">
+            <div>
+              <div class="card-title">${ICONS.layers} Слои конструкции</div>
+              <div class="card-description">${layers.length} ${layers.length === 1 ? 'слой' : layers.length < 5 ? 'слоя' : 'слоёв'} · ${totalThickness.toFixed(0)} мм</div>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="openDialog()">
+              ${ICONS.plus} Добавить
+            </button>
+          </div>
+          <div class="card-content">
+            ${layers.length === 0 ? `
+              <div class="empty-state">
+                ${ICONS.layers}
+                <div class="empty-state-text">Нет слоёв</div>
+                <div class="empty-state-hint">Добавьте материалы для расчёта</div>
+              </div>
+            ` : `
+              <!-- WALL VISUALIZATION -->
+              <div class="wall-viz" style="margin-bottom:1rem">
+                <span class="wall-side-label inside">Внутри</span>
+                <span class="wall-side-label outside">Снаружи</span>
+                ${layers.map((l, i) => {
+                  const pct = totalThickness > 0 ? (l.thickness / totalThickness * 100) : (100 / layers.length);
+                  return `<div class="wall-layer-viz" style="width:${Math.max(pct, 8)}%;background:${l.material.color}" data-tooltip="${l.material.name} (${l.thickness}мм)">
+                    <span class="wall-layer-viz-label">${l.material.name.split(' ')[0]}</span>
+                    <span class="wall-layer-viz-thickness">${l.thickness}</span>
+                  </div>`;
+                }).join('')}
+              </div>
+
+              <!-- LAYERS LIST -->
+              <div class="layers-list">
+                ${layers.map((l, i) => `
+                  <div class="layer-item" draggable="true" ondragstart="dragStart(event,${i})" ondragover="dragOver(event,${i})" ondrop="drop(event,${i})" ondragend="dragEnd()">
+                    <div class="layer-grip"><span></span><span></span><span></span></div>
+                    <div class="layer-color" style="background:${l.material.color}"></div>
+                    <div class="layer-info">
+                      <div class="layer-name">${l.material.name}</div>
+                      <div class="layer-material">λ=${l.material.lambda} · μ=${l.material.mu}</div>
+                    </div>
+                    <div class="layer-thickness-wrap">
+                      <div class="input-unit-wrap">
+                        <input type="number" class="input input-mono" style="width:5rem;height:1.875rem;text-align:right" value="${l.thickness}" min="1" max="1000" onchange="updateThickness(${l.id}, +this.value)">
+                        <span class="input-unit">мм</span>
+                      </div>
+                    </div>
+                    <div class="layer-r mono">R=${((l.thickness/1000)/l.material.lambda).toFixed(3)}</div>
+                    <div class="layer-actions">
+                      ${i > 0 ? `<button class="btn btn-ghost btn-icon-sm" onclick="moveLayer(${i},-1)" aria-label="Вверх">${ICONS.arrowUp}</button>` : ''}
+                      ${i < layers.length-1 ? `<button class="btn btn-ghost btn-icon-sm" onclick="moveLayer(${i},1)" aria-label="Вниз">${ICONS.arrowDown}</button>` : ''}
+                      <button class="btn btn-ghost btn-icon-sm" onclick="removeLayer(${l.id})" aria-label="Удалить" style="color:var(--destructive)">${ICONS.trash}</button>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            `}
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: RESULTS -->
+      <div class="animate-in stagger-2">
+        <div class="card" style="height:100%">
+          <div class="card-header">
+            <div>
+              <div class="card-title">${ICONS.chart} Результаты расчёта</div>
+              <div class="card-description">СНиП 23-02-2003 · Москва</div>
+            </div>
+            ${meetsNorm && meetsSanitary ?
+              `<span class="badge badge-success">${ICONS.check} Норма</span>` :
+              `<span class="badge badge-destructive">${ICONS.x} Не соответствует</span>`
+            }
+          </div>
+          <div class="card-content">
+            <!-- TABS -->
+            <div class="tabs" style="margin-bottom:1rem">
+              <button class="tab ${activeTab === 'thermal' ? 'active' : ''}" onclick="updateState('activeTab','thermal')">${ICONS.thermometer} Тепловая защита</button>
+              <button class="tab ${activeTab === 'moisture' ? 'active' : ''}" onclick="updateState('activeTab','moisture')">${ICONS.droplets} Влага</button>
+              <button class="tab ${activeTab === 'losses' ? 'active' : ''}" onclick="updateState('activeTab','losses')">${ICONS.zap} Потери</button>
+            </div>
+
+            ${activeTab === 'thermal' ? `
+              <!-- THERMAL TAB -->
+              <div class="results-grid" style="margin-bottom:1rem">
+                <div class="result-card">
+                  <div class="result-label">R конструкции</div>
+                  <div class="result-value mono">${Rtotal.toFixed(2)}</div>
+                  <div class="result-unit">(м²·°C)/Вт</div>
+                </div>
+                <div class="result-card">
+                  <div class="result-label">R требуемое</div>
+                  <div class="result-value mono">${Rrequired.toFixed(2)}</div>
+                  <div class="result-unit">(м²·°C)/Вт</div>
+                </div>
+                <div class="result-card">
+                  <div class="result-label">Запас</div>
+                  <div class="result-value mono" style="color:${Rtotal >= Rrequired ? 'var(--success)' : 'var(--destructive)'}">
+                    ${Rrequired > 0 ? ((Rtotal / Rrequired * 100) - 100).toFixed(0) : 0}%
+                  </div>
+                  <div class="result-status" style="color:${Rtotal >= Rrequired ? 'var(--success)' : 'var(--destructive)'}">
+                    ${Rtotal >= Rrequired ? 'Соответствует нормам' : 'Ниже нормы'}
+                  </div>
+                </div>
+              </div>
+
+              <!-- NORMA BAR -->
+              <div style="margin-bottom:1.25rem">
+                <div style="display:flex;justify-content:space-between;margin-bottom:0.375rem">
+                  <span style="font-size:0.75rem;color:var(--muted-foreground)">Сопротивление теплопередаче</span>
+                  <span class="mono" style="font-size:0.75rem;font-weight:600">${Rtotal.toFixed(2)} / ${Rrequired.toFixed(2)}</span>
+                </div>
+                <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden;position:relative">
+                  <div style="height:100%;width:${Math.min(Rtotal / (Rrequired * 1.5) * 100, 100)}%;background:${Rtotal >= Rrequired ? 'var(--success)' : 'var(--destructive)'};border-radius:4px;transition:width 500ms cubic-bezier(0.25,0.4,0.25,1)"></div>
+                  <div style="position:absolute;top:-2px;bottom:-2px;left:${Math.min(Rrequired / (Rrequired * 1.5) * 100, 100)}%;width:2px;background:var(--foreground);border-radius:1px" data-tooltip="Норма: ${Rrequired.toFixed(2)}"></div>
+                </div>
+              </div>
+
+              <!-- TEMPERATURE DISTRIBUTION -->
+              <div style="font-size:0.75rem;font-weight:600;margin-bottom:0.5rem;color:var(--muted-foreground);text-transform:uppercase;letter-spacing:0.04em">Распределение температур</div>
+              <canvas id="tempCanvas" class="temp-graph-canvas" width="520" height="220"></canvas>
+
+              <div style="display:flex;gap:0.75rem;margin-top:0.75rem;flex-wrap:wrap">
+                <div style="display:flex;align-items:center;gap:0.375rem">
+                  <div style="width:1rem;height:3px;background:var(--destructive);border-radius:2px"></div>
+                  <span style="font-size:0.6875rem;color:var(--muted-foreground)">Температура</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:0.375rem">
+                  <div style="width:1rem;height:3px;background:var(--brand);border-radius:2px;opacity:0.5"></div>
+                  <span style="font-size:0.6875rem;color:var(--muted-foreground)">Точка росы (${dewP.toFixed(1)}°C)</span>
+                </div>
+                ${condensationRisk ? `<span class="badge badge-warning">Риск конденсата!</span>` : ''}
+              </div>
+            ` : activeTab === 'moisture' ? `
+              <!-- MOISTURE TAB -->
+              <div class="results-grid" style="margin-bottom:1rem">
+                <div class="result-card">
+                  <div class="result-label">Точка росы</div>
+                  <div class="result-value mono">${dewP.toFixed(1)}°</div>
+                  <div class="result-unit">°C</div>
+                </div>
+                <div class="result-card">
+                  <div class="result-label">T внутр. пов.</div>
+                  <div class="result-value mono">${innerSurfaceTemp.toFixed(1)}°</div>
+                  <div class="result-unit">°C</div>
+                </div>
+                <div class="result-card">
+                  <div class="result-label">Конденсат</div>
+                  <div class="result-value" style="font-size:1rem;color:${condensationRisk ? 'var(--destructive)' : 'var(--success)'}">
+                    ${condensationRisk ? 'Риск конденсата!' : 'Нет риска'}
+                  </div>
+                </div>
+              </div>
+              <div class="card" style="background:var(--secondary);border:1px solid var(--border);padding:1rem;border-radius:var(--radius-lg)">
+                <div style="font-size:0.8125rem;line-height:1.6;color:var(--muted-foreground)">
+                  ${condensationRisk ?
+                    `Температура внутренней поверхности стены (<strong class="mono">${innerSurfaceTemp.toFixed(1)}°C</strong>) ниже точки росы (<strong class="mono">${dewP.toFixed(1)}°C</strong>). Это означает, что на внутренней поверхности конструкции будет образовываться конденсат. Рекомендуется увеличить толщину утеплителя.` :
+                    `Температура внутренней поверхности стены (<strong class="mono">${innerSurfaceTemp.toFixed(1)}°C</strong>) выше точки росы (<strong class="mono">${dewP.toFixed(1)}°C</strong>). Конденсат на внутренней поверхности не образуется.`
+                  }
+                </div>
+              </div>
+            ` : `
+              <!-- LOSSES TAB -->
+              <div class="results-grid" style="margin-bottom:1rem">
+                <div class="result-card">
+                  <div class="result-label">Теплопотери</div>
+                  <div class="result-value mono">${qPerHour.toFixed(1)}</div>
+                  <div class="result-unit">Вт/м²</div>
+                </div>
+                <div class="result-card">
+                  <div class="result-label">За сезон</div>
+                  <div class="result-value mono">${qSeason.toFixed(1)}</div>
+                  <div class="result-unit">кВт·ч/м²</div>
+                </div>
+                <div class="result-card">
+                  <div class="result-label">Толщина</div>
+                  <div class="result-value mono">${totalThickness.toFixed(0)}</div>
+                  <div class="result-unit">мм</div>
+                </div>
+              </div>
+              <div class="card" style="background:var(--secondary);border:1px solid var(--border);padding:1rem;border-radius:var(--radius-lg)">
+                <div style="font-size:0.8125rem;line-height:1.6;color:var(--muted-foreground)">
+                  При текущих параметрах конструкции и температуре самой холодной пятидневки (<strong class="mono">-23°C</strong>),
+                  теплопотери через 1 м² составляют <strong class="mono">${Rtotal > 0 ? ((tempInside - (-23)) / Rtotal).toFixed(1) : '∞'} Вт</strong>.
+                  За отопительный сезон (202 сут.) потери составят <strong class="mono">${qSeason.toFixed(1)} кВт·ч/м²</strong>.
+                </div>
+              </div>
+            `}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <span>ThermoCalc MVP · СНиП 23-02-2003</span>
+      <span>Оценочный расчёт</span>
+    </footer>
+
+    <!-- MATERIAL DIALOG -->
+    <div class="dialog-overlay ${state.dialogOpen ? 'open' : ''}" onclick="closeDialog(event)">
+      <div class="dialog" onclick="event.stopPropagation()">
+        <div class="dialog-header">
+          <div class="dialog-title">Выбор материала</div>
+        </div>
+        <div class="dialog-body">
+          ${Object.entries(MATERIALS).map(([cat, mats]) => `
+            <div class="material-category">
+              <div class="material-category-title">${cat}</div>
+              ${mats.map((m, mi) => `
+                <div class="material-option" onclick="addLayer('${cat}', ${mi})">
+                  <div style="display:flex;align-items:center;gap:0.5rem">
+                    <div style="width:0.625rem;height:1.5rem;border-radius:2px;background:${m.color};flex-shrink:0"></div>
+                    <span class="material-option-name">${m.name}</span>
+                  </div>
+                  <span class="material-option-lambda mono">λ=${m.lambda}</span>
+                </div>
+              `).join('')}
+            </div>
+          `).join('')}
+        </div>
+        <div class="dialog-footer">
+          <button class="btn btn-secondary" onclick="state.dialogOpen=false;render()">Закрыть</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Draw temperature graph
+  if (activeTab === 'thermal') {
+    requestAnimationFrame(() => drawTempGraph(temps, dewP));
+  }
+}
+
+// ===== TEMPERATURE GRAPH DRAWING =====
+function drawTempGraph(temps, dewP) {
+  const canvas = document.getElementById('tempCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.scale(dpr, dpr);
+  const W = rect.width, H = rect.height;
+  const pad = { top: 24, right: 16, bottom: 28, left: 44 };
+
+  if (temps.length < 2) {
+    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--muted-foreground').trim();
+    ctx.font = '13px Inter';
+    ctx.textAlign = 'center';
+    ctx.fillText('Добавьте слои для визуализации', W/2, H/2);
+    return;
+  }
+
+  const isDark = state.isDark;
+  const tMin = Math.min(...temps.map(p => p.t), dewP) - 3;
+  const tMax = Math.max(...temps.map(p => p.t), dewP) + 3;
+  const xMax = temps[temps.length-1].x || 1;
+
+  const toX = (x) => pad.left + (x / xMax) * (W - pad.left - pad.right);
+  const toY = (t) => pad.top + ((tMax - t) / (tMax - tMin)) * (H - pad.top - pad.bottom);
+
+  // Grid
+  ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+  ctx.lineWidth = 1;
+  const tStep = Math.ceil((tMax - tMin) / 6);
+  for (let t = Math.ceil(tMin); t <= tMax; t += tStep) {
+    const y = toY(t);
+    ctx.beginPath();
+    ctx.moveTo(pad.left, y);
+    ctx.lineTo(W - pad.right, y);
+    ctx.stroke();
+    ctx.fillStyle = isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.35)';
+    ctx.font = '10px JetBrains Mono';
+    ctx.textAlign = 'right';
+    ctx.fillText(`${t}°`, pad.left - 6, y + 3);
+  }
+
+  // Layer backgrounds
+  let cumulX = 0;
+  state.layers.forEach((l, i) => {
+    const x1 = toX(cumulX);
+    cumulX += l.thickness;
+    const x2 = toX(cumulX);
+    ctx.fillStyle = l.material.color + '30';
+    ctx.fillRect(x1, pad.top, x2 - x1, H - pad.top - pad.bottom);
+    ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+    ctx.beginPath();
+    ctx.moveTo(x2, pad.top);
+    ctx.lineTo(x2, H - pad.bottom);
+    ctx.stroke();
+  });
+
+  // Dew point line
+  const dewY = toY(dewP);
+  ctx.strokeStyle = isDark ? 'rgba(100,180,255,0.35)' : 'rgba(0,100,200,0.3)';
+  ctx.setLineDash([4, 4]);
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(pad.left, dewY);
+  ctx.lineTo(W - pad.right, dewY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.fillStyle = isDark ? 'rgba(100,180,255,0.6)' : 'rgba(0,100,200,0.5)';
+  ctx.font = '9px JetBrains Mono';
+  ctx.textAlign = 'left';
+  ctx.fillText(`Точка росы ${dewP.toFixed(1)}°`, pad.left + 4, dewY - 5);
+
+  // Temperature line
+  ctx.strokeStyle = isDark ? '#ff7070' : '#d44';
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  temps.forEach((p, i) => {
+    const x = toX(p.x);
+    const y = toY(p.t);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  // Points
+  temps.forEach((p, i) => {
+    if (i === 0 || i === temps.length - 1) return;
+    const x = toX(p.x);
+    const y = toY(p.t);
+    ctx.fillStyle = isDark ? '#ff7070' : '#d44';
+    ctx.beginPath();
+    ctx.arc(x, y, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = isDark ? '#333' : '#fff';
+    ctx.beginPath();
+    ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+// ===== STATE MANAGEMENT =====
+function updateState(key, value) {
+  state[key] = value;
+  render();
+}
+
+function updateThickness(id, value) {
+  const layer = state.layers.find(l => l.id === id);
+  if (layer) layer.thickness = Math.max(1, Math.min(1000, value));
+  render();
+}
+
+function removeLayer(id) {
+  state.layers = state.layers.filter(l => l.id !== id);
+  render();
+}
+
+function moveLayer(index, dir) {
+  const newIndex = index + dir;
+  if (newIndex < 0 || newIndex >= state.layers.length) return;
+  const temp = state.layers[index];
+  state.layers[index] = state.layers[newIndex];
+  state.layers[newIndex] = temp;
+  render();
+}
+
+function addLayer(category, materialIndex) {
+  const mat = MATERIALS[category][materialIndex];
+  let defaultThickness = 100;
+  if (category === "Каменная кладка") defaultThickness = 375;
+  if (category === "Отделка") defaultThickness = 20;
+  if (category === "Прочее" && mat.name.includes("изоляция")) defaultThickness = 1;
+
+  state.layers.push({
+    id: state.nextId++,
+    material: mat,
+    thickness: defaultThickness
+  });
+  state.dialogOpen = false;
+  render();
+}
+
+function openDialog() { state.dialogOpen = true; render(); }
+function closeDialog(e) {
+  if (e.target.classList.contains('dialog-overlay')) {
+    state.dialogOpen = false;
+    render();
+  }
+}
+
+function toggleTheme() {
+  state.isDark = !state.isDark;
+  document.documentElement.className = state.isDark ? 'dark' : 'light';
+  render();
+}
+
+function shareCalc() {
+  const params = state.layers.map(l => `${encodeURIComponent(l.material.name)}:${l.thickness}`).join('|');
+  const url = `${location.origin}${location.pathname}?layers=${params}&ti=${state.tempInside}&to=${state.tempOutside}`;
+  navigator.clipboard?.writeText(url).then(() => {
+    alert('Ссылка на расчёт скопирована!');
+  });
+}
+
+// ===== DRAG & DROP =====
+let dragIndex = null;
+function dragStart(e, i) { dragIndex = i; e.currentTarget.classList.add('dragging'); }
+function dragOver(e, i) { e.preventDefault(); }
+function drop(e, i) {
+  e.preventDefault();
+  if (dragIndex === null || dragIndex === i) return;
+  const item = state.layers.splice(dragIndex, 1)[0];
+  state.layers.splice(i, 0, item);
+  dragIndex = null;
+  render();
+}
+function dragEnd() { dragIndex = null; document.querySelectorAll('.dragging').forEach(el => el.classList.remove('dragging')); }
+
+// ===== INIT =====
+render();
+
+// Responsive canvas redraw
+window.addEventListener('resize', () => {
+  if (state.activeTab === 'thermal') {
+    const temps = calcTemperatures(state.layers, state.tempInside, state.tempOutside);
+    const dewP = dewPoint(state.tempInside, state.humidityInside);
+    drawTempGraph(temps, dewP);
+  }
+});
+</script>
+</body>
+</html>
