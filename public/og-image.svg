@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#0f0f0f"/>
+  <rect width="1200" height="630" fill="url(#grad)"/>
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#0f0f0f;stop-opacity:1"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Grid lines -->
+  <line x1="0" y1="210" x2="1200" y2="210" stroke="#ffffff" stroke-opacity="0.04" stroke-width="1"/>
+  <line x1="0" y1="420" x2="1200" y2="420" stroke="#ffffff" stroke-opacity="0.04" stroke-width="1"/>
+  <line x1="400" y1="0" x2="400" y2="630" stroke="#ffffff" stroke-opacity="0.04" stroke-width="1"/>
+  <line x1="800" y1="0" x2="800" y2="630" stroke="#ffffff" stroke-opacity="0.04" stroke-width="1"/>
+
+  <!-- Logo icon -->
+  <rect x="64" y="64" width="80" height="80" rx="20" fill="#1a1a1a" stroke="#333" stroke-width="1"/>
+  <path d="M84 130V106l20-16 20 16v24" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M94 130v-12h20v12" stroke="white" stroke-width="2" stroke-linecap="round" fill="none"/>
+  <line x1="80" y1="113" x2="128" y2="113" stroke="#60a5fa" stroke-width="2" stroke-dasharray="3,3"/>
+
+  <!-- Title -->
+  <text x="168" y="107" font-family="system-ui, -apple-system, sans-serif" font-size="48" font-weight="700" fill="white">ThermoCalc</text>
+  <text x="168" y="135" font-family="system-ui, -apple-system, sans-serif" font-size="22" fill="#888">Теплотехнический калькулятор</text>
+
+  <!-- Divider -->
+  <line x1="64" y1="176" x2="1136" y2="176" stroke="#2a2a2a" stroke-width="1"/>
+
+  <!-- Temperature graph mockup -->
+  <rect x="64" y="208" width="560" height="280" rx="16" fill="#161616" stroke="#2a2a2a" stroke-width="1"/>
+
+  <!-- Graph grid -->
+  <line x1="100" y1="230" x2="588" y2="230" stroke="#333" stroke-width="0.5"/>
+  <line x1="100" y1="270" x2="588" y2="270" stroke="#333" stroke-width="0.5"/>
+  <line x1="100" y1="310" x2="588" y2="310" stroke="#333" stroke-width="0.5"/>
+  <line x1="100" y1="350" x2="588" y2="350" stroke="#333" stroke-width="0.5"/>
+  <line x1="100" y1="390" x2="588" y2="390" stroke="#333" stroke-width="0.5"/>
+  <line x1="100" y1="430" x2="588" y2="430" stroke="#333" stroke-width="0.5"/>
+  <line x1="100" y1="460" x2="588" y2="460" stroke="#333" stroke-width="0.5"/>
+
+  <!-- Layer backgrounds -->
+  <rect x="100" y="224" width="80" height="240" fill="#f0f0f010" rx="2"/>
+  <rect x="180" y="224" width="200" height="240" fill="#ffe08210" rx="2"/>
+  <rect x="380" y="224" width="120" height="240" fill="#b2ebf210" rx="2"/>
+  <rect x="500" y="224" width="88" height="240" fill="#e0e0e010" rx="2"/>
+
+  <!-- Dew point line -->
+  <line x1="100" y1="320" x2="588" y2="320" stroke="#60a5fa" stroke-width="1.5" stroke-dasharray="6,4" stroke-opacity="0.6"/>
+  <text x="106" y="316" font-family="monospace" font-size="11" fill="#60a5fa" fill-opacity="0.7">Точка росы 10.7°</text>
+
+  <!-- Temperature line -->
+  <polyline points="100,238 180,246 380,316 500,390 588,446 600,450" stroke="#ef4444" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Intersection dot -->
+  <circle cx="380" cy="316" r="7" fill="#60a5fa"/>
+  <circle cx="380" cy="316" r="3" fill="#0f0f0f"/>
+
+  <!-- Points -->
+  <circle cx="180" cy="246" r="4" fill="#ef4444"/>
+  <circle cx="180" cy="246" r="2" fill="#161616"/>
+  <circle cx="500" cy="390" r="4" fill="#ef4444"/>
+  <circle cx="500" cy="390" r="2" fill="#161616"/>
+
+  <!-- Right column: features -->
+  <rect x="664" y="208" width="480" height="280" rx="16" fill="#161616" stroke="#2a2a2a" stroke-width="1"/>
+
+  <!-- Feature items -->
+  <circle cx="700" cy="255" r="6" fill="#22c55e"/>
+  <text x="720" y="260" font-family="system-ui, sans-serif" font-size="20" font-weight="500" fill="white">Расчёт по СНиП 23-02-2003</text>
+
+  <circle cx="700" cy="307" r="6" fill="#60a5fa"/>
+  <text x="720" y="312" font-family="system-ui, sans-serif" font-size="20" font-weight="500" fill="white">57 регионов России</text>
+
+  <circle cx="700" cy="359" r="6" fill="#a78bfa"/>
+  <text x="720" y="364" font-family="system-ui, sans-serif" font-size="20" font-weight="500" fill="white">AI-рекомендации по утеплению</text>
+
+  <circle cx="700" cy="411" r="6" fill="#f59e0b"/>
+  <text x="720" y="416" font-family="system-ui, sans-serif" font-size="20" font-weight="500" fill="white">Точка росы и риск конденсата</text>
+
+  <circle cx="700" cy="463" r="6" fill="#ef4444"/>
+  <text x="720" y="468" font-family="system-ui, sans-serif" font-size="20" font-weight="500" fill="white">Теплопотери за сезон</text>
+
+  <!-- Bottom bar -->
+  <rect x="0" y="570" width="1200" height="60" fill="#111"/>
+  <text x="64" y="603" font-family="system-ui, sans-serif" font-size="18" fill="#555">thermocalc-seven.vercel.app</text>
+  <text x="1136" y="603" font-family="system-ui, sans-serif" font-size="18" fill="#333" text-anchor="end">Бесплатно · Без регистрации</text>
+</svg>

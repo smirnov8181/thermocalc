@@ -3,7 +3,95 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ThermoCalc — Теплотехнический калькулятор</title>
+
+<title>ThermoCalc — Теплотехнический расчёт стен онлайн, точка росы, СНиП 23-02-2003</title>
+<meta name="description" content="Бесплатный онлайн-калькулятор теплотехнического расчёта стен. Расчёт точки росы, сопротивления теплопередаче R, теплопотерь по СНиП 23-02-2003. Данные по 57 регионам России. AI-рекомендации по утеплению.">
+<meta name="keywords" content="теплотехнический расчёт онлайн, расчёт точки росы, калькулятор утепления стены, сопротивление теплопередаче, теплопотери расчёт, СНиП 23-02-2003 калькулятор, расчёт утеплителя, ГСОП">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://thermocalc-seven.vercel.app/">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://thermocalc-seven.vercel.app/">
+<meta property="og:title" content="ThermoCalc — Теплотехнический расчёт стен онлайн">
+<meta property="og:description" content="Бесплатный калькулятор теплотехнического расчёта ограждающих конструкций. Точка росы, R-требуемое, теплопотери, 57 регионов России, AI-рекомендации.">
+<meta property="og:image" content="https://thermocalc-seven.vercel.app/og-image.svg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:site_name" content="ThermoCalc">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ThermoCalc — Теплотехнический расчёт стен онлайн">
+<meta name="twitter:description" content="Бесплатный калькулятор теплотехнического расчёта ограждающих конструкций. Точка росы, R-требуемое, теплопотери, 57 регионов России.">
+<meta name="twitter:image" content="https://thermocalc-seven.vercel.app/og-image.svg">
+
+<!-- JSON-LD: WebApplication -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "ThermoCalc",
+  "alternateName": "Теплотехнический калькулятор",
+  "description": "Онлайн-калькулятор теплотехнического расчёта ограждающих конструкций зданий. Расчёт сопротивления теплопередаче, точки росы, теплопотерь по СНиП 23-02-2003. Климатические данные по 57 регионам России по СП 131.13330.",
+  "url": "https://thermocalc-seven.vercel.app/",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "ru",
+  "isAccessibleForFree": true,
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "RUB"
+  },
+  "featureList": [
+    "Расчёт сопротивления теплопередаче (R-значение)",
+    "Расчёт точки росы и риска конденсации",
+    "Расчёт теплопотерь и сезонных затрат",
+    "Климатические данные по 57 регионам России (СП 131.13330)",
+    "AI-рекомендации по оптимизации конструкции",
+    "Визуализация распределения температур",
+    "Соответствие СНиП 23-02-2003"
+  ]
+}
+</script>
+
+<!-- JSON-LD: FAQPage -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Как рассчитать сопротивление теплопередаче стены?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Сопротивление теплопередаче R рассчитывается как сумма термического сопротивления каждого слоя: R = δ/λ, где δ — толщина слоя в метрах, λ — теплопроводность материала. К сумме добавляются сопротивления внутренней (1/8.7) и наружной (1/23) поверхностей. ThermoCalc выполняет этот расчёт автоматически по СНиП 23-02-2003."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Что такое точка росы в стене?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Точка росы — температура, при которой водяной пар в воздухе начинает конденсироваться в воду. Если температура в любой точке стены опускается ниже точки росы, в этом месте образуется конденсат, что приводит к намоканию и разрушению конструкции. ThermoCalc показывает распределение температур в стене и предупреждает о риске конденсации."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Какое R-значение требует СНиП для стен?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Требуемое сопротивление теплопередаче зависит от региона строительства через показатель ГСОП (градусо-сутки отопительного периода). Для Москвы ГСОП ≈ 4943, R_тр ≈ 3.13 (м²·°С)/Вт. Для Новосибирска ГСОП ≈ 6363, R_тр ≈ 3.63. ThermoCalc автоматически подставляет климатические данные при выборе региона."
+      }
+    }
+  ]
+}
+</script>
+
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
